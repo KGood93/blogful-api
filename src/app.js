@@ -4,7 +4,7 @@ const morgan = require('morgan')
 const cors = require('cors')
 const helmet = require('helmet')
 const {NODE_ENV} = require('./config')
-const ArticlesService = require('./articles-service')
+const articlesRouter = require('./articles/articles-router')
 
 const app = express()
 
@@ -16,18 +16,16 @@ app.use(morgan(morganOption))
 app.use(helmet())
 app.use(cors())
 
-app.get('/articles', (req, res, next) => {
-    const knexInstance = req.app.get('db')
-    ArticlesService.getAllArticles(knexInstance)
-        .then(articles => {
-            res.json(articles)
-        })
-        .catch(next)
-})
+app.use('/api/articles', articlesRouter)
 
 app.get('/', (req, res) => {
     res.send('Hello, world!')
 })
+
+app.get('/xss', (req, res) => {
+    res.cookie('secretToken', '1234567890');
+    res.sendFile(__dirname + '/xss-example.html')
+});
 
 app.use(function errorHandler(error, req, res, next) {
     let response
